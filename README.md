@@ -1,0 +1,2 @@
+# SelectFileScanByWIndowsDefender
+Windows11からファイルの個別スキャンが出来なくなったのでレジストリにPowershell関数を使った個別スキャン機能を追加するTips
