@@ -46,12 +46,12 @@
 "Icon"="%ProgramFiles%\\Windows Defender\\EppManifest.dll"
 
 [HKEY_CLASSES_ROOT\*\shell\ScanWithDefender\command]
-@="powershell.exe -NoExit -ExecutionPolicy Bypass -Command \"Write-Host '--- Microsoft Defender 個別スキャン ---'; &amp; \\\"$env:ProgramFiles\\Windows Defender\\MpCmdRun.exe\\\" -Scan -ScanType 3 -File '%1'; Write-Host '--- スキャン完了 ---'; Pause\""</code></pre>
+@="powershell.exe -NoExit -ExecutionPolicy Bypass -Command \"Write-Host '--- Microsoft Defender 個別スキャン ---'; &amp; \\\"$env:ProgramFiles\\Windows Defender\\MpCmdRun.exe\\\" -Scan -ScanType 3 -File '%1'; Write-Host '--- スキャン完了 ---'; Read-Host 'Enterキーで終了します' | Out-Null; exit\""</code></pre>
 
   <ul>
     <li><code>%1</code> → 選択したファイルのフルパスが渡される</li>
     <li><code>-NoExit</code> → PowerShellウィンドウを閉じずに残す</li>
-    <li><code>Pause</code> → 結果を確認してから閉じられる</li>
+    <li><code>Read-Host 'Enterキーで終了します'</code> → Enterキーを押すと即終了</li>
   </ul>
 
   <h2>実行例</h2>
@@ -59,7 +59,8 @@
     <li>任意のファイルを右クリック → 「個別スキャン」</li>
     <li>PowerShell ウィンドウが開き、スキャン開始</li>
     <li>結果（例：<code>found no threats</code>）が表示</li>
-    <li>「--- スキャン完了 ---」と出て <code>Pause</code> で止まるので確認可能</li>
+    <li>「--- スキャン完了 ---」と出て <code>Enterキーで終了します</code> と表示</li>
+    <li>リターンキーを押すと即座に PowerShell が閉じる</li>
   </ol>
 
   <h2>注意点</h2>
