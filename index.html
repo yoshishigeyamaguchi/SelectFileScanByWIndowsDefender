@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="Shift_JIS">
+  <title>Windows Defender 個別ファイルスキャンを右クリックメニューに追加する方法</title>
+  <style>
+    body { font-family: "Segoe UI", sans-serif; line-height: 1.6; margin: 2em; }
+    h1, h2, h3 { color: #2c3e50; }
+    pre { background: #f4f4f4; padding: 1em; border-radius: 5px; }
+    code { background: #eee; padding: 2px 4px; border-radius: 3px; }
+  </style>
+</head>
+<body>
+  <h1>Windows Defender 個別ファイルスキャンを右クリックメニューに追加する方法</h1>
+
+  <h2>背景</h2>
+  <p>
+    Windows 11 では「右クリック → Microsoft Defender でスキャン」を選んでも、
+    個別ファイルを直接スキャンできず「スキャンのオプション」画面に遷移してしまいます。<br>
+    そこで、PowerShell + レジストリ編集を組み合わせて、右クリックから任意ファイルを直接スキャンできるようにしました。
+  </p>
+
+  <h2>方法</h2>
+
+  <h3>1. PowerShell で個別ファイルをスキャンする</h3>
+  <pre><code>&amp; "$env:ProgramFiles\Windows Defender\MpCmdRun.exe" -Scan -ScanType 3 -File "C:\path\to\file.exe"</code></pre>
+  <ul>
+    <li><code>-ScanType 3</code> → カスタムスキャン</li>
+    <li><code>-File</code> → 対象ファイルを指定</li>
+  </ul>
+
+  <h3>2. PowerShell 関数化（任意）</h3>
+  <pre><code>function Scan-File {
+    param([string]$Path)
+    &amp; "$env:ProgramFiles\Windows Defender\MpCmdRun.exe" -Scan -ScanType 3 -File $Path
+}</code></pre>
+  <p>これで <code>Scan-File "C:\path\to\file.exe"</code> と打つだけでスキャン可能。</p>
+
+  <h3>3. レジストリ編集で右クリックメニューに追加</h3>
+  <p>以下の内容を <code>.reg</code> ファイルとして保存し、<strong>ANSI (SJIS)</strong> で保存後、ダブルクリックで取り込みます。</p>
+
+  <pre><code>Windows Registry Editor Version 5.00
+
+[HKEY_CLASSES_ROOT\*\shell\ScanWithDefender]
+@="個別スキャン"
+"Icon"="%ProgramFiles%\\Windows Defender\\EppManifest.dll"
+
+[HKEY_CLASSES_ROOT\*\shell\ScanWithDefender\command]
+@="powershell.exe -NoExit -ExecutionPolicy Bypass -Command \"Write-Host '--- Microsoft Defender 個別スキャン ---'; &amp; \\\"$env:ProgramFiles\\Windows Defender\\MpCmdRun.exe\\\" -Scan -ScanType 3 -File '%1'; Write-Host '--- スキャン完了 ---'; Pause\""</code></pre>
+
+  <ul>
+    <li><code>%1</code> → 選択したファイルのフルパスが渡される</li>
+    <li><code>-NoExit</code> → PowerShellウィンドウを閉じずに残す</li>
+    <li><code>Pause</code> → 結果を確認してから閉じられる</li>
+  </ul>
+
+  <h2>実行例</h2>
+  <ol>
+    <li>任意のファイルを右クリック → 「個別スキャン」</li>
+    <li>PowerShell ウィンドウが開き、スキャン開始</li>
+    <li>結果（例：<code>found no threats</code>）が表示</li>
+    <li>「--- スキャン完了 ---」と出て <code>Pause</code> で止まるので確認可能</li>
+  </ol>
+
+  <h2>注意点</h2>
+  <ul>
+    <li>レジストリ編集は必ずバックアップを取ってから行うこと</li>
+    <li>複数ファイルを同時にスキャンしたい場合は <code>%1</code> を <code>%*</code> に変更</li>
+    <li>実行ポリシーを緩めているため、セキュリティポリシーに注意</li>
+  </ul>
+
+  <h2>まとめ</h2>
+  <ul>
+    <li>Windows 11 標準の右クリックスキャンはフォルダー単位に制限されている</li>
+    <li><code>MpCmdRun.exe</code> を使えばファイル単位でスキャン可能</li>
+    <li>レジストリ編集で右クリックメニューに追加すれば、GUIからも簡単に利用できる</li>
+  </ul>
+</body>
+</html>
